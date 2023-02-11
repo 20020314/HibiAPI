@@ -6,81 +6,55 @@ from typing import Any, Dict, Optional, overload
 
 from httpx import URL
 
-from hibiapi.utils.cache import disable_cache
+from hibiapi.api.bilibili.constants import BilibiliConstants
+from hibiapi.utils.decorators import enum_auto_doc
 from hibiapi.utils.net import catch_network_error
-from hibiapi.utils.routing import BaseEndpoint
-
-from ..constants import BilibiliConstants
+from hibiapi.utils.routing import BaseEndpoint, dont_route
 
 
+@enum_auto_doc
 class TimelineType(str, Enum):
-    """
-    番剧时间线类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | global  | 番剧 |
-    | cn  | 国产动画 |
-    """
+    """番剧时间线类型"""
 
     CN = "cn"
+    """国产动画"""
     GLOBAL = "global"
+    """番剧"""
 
 
+@enum_auto_doc
 class CommentSortType(IntEnum):
-    """
-    评论排序类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | 0 | 按时间 |
-    | 1 | 按热评 |
-    | 2 | 按点赞 |
-    """
+    """评论排序类型"""
 
     LIKES = 2
+    """按点赞"""
     HOT = 1
+    """按热评"""
     TIME = 0
+    """按时间"""
 
 
+@enum_auto_doc
 class CommentType(IntEnum):
-    """
-    评论来源类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | 1 | 视频 |
-    | 12 | 文章 |
-    | 11 | 含图片的动态 |
-    | 17 | 不含图片的动态 |
-    | 14 | 音乐 |
-    | 19 | 歌单 |
-    """
+    """评论来源类型"""
 
     VIDEO = 1
+    """视频"""
     ARTICLE = 12
+    """文章"""
     DYNAMIC_PICTURE = 11
+    """含图片的动态"""
     DYNAMIC_TEXT = 17
+    """不含图片的动态"""
     AUDIO = 14
+    """音乐"""
     AUDIO_LIST = 19
+    """歌单"""
 
 
+@enum_auto_doc
 class VideoQualityType(IntEnum):
-    """
-    视频质量类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | 6 | 240P |
-    | 16 | 360P |
-    | 32 | 480P |
-    | 64 | 720P |
-    | 74 | 720P 60FPS |
-    | 80 | 1080P |
-    | 112 | 1080P+ |
-    | 116 | 1080P 60FPS |
-    | 120 | 4K |
-    """
+    """视频质量类型"""
 
     VIDEO_240P = 6
     VIDEO_360P = 16
@@ -93,90 +67,71 @@ class VideoQualityType(IntEnum):
     VIDEO_4K = 120
 
 
+@enum_auto_doc
 class VideoFormatType(IntEnum):
-    """
-    视频格式类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | 0 | FLV |
-    | 2 | MP4 |
-    | 16 | DASH |
-    """
+    """视频格式类型"""
 
     FLV = 0
     MP4 = 2
     DASH = 16
 
 
+@enum_auto_doc
 class RankBangumiType(str, Enum):
-    """
-    番剧排行榜类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | global  | 番剧 |
-    | cn  | 国产动画 |
-    """
+    """番剧排行榜类型"""
 
     CN = "cn"
+    """国产动画"""
     GLOBAL = "global"
+    """番剧"""
 
 
+@enum_auto_doc
 class RankContentType(IntEnum):
-    """
-    视频排行榜内容类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | 0  | 全站 |
-    | 1  | 动画 |
-    | 168  | 国创相关 |
-    | 3  | 音乐 |
-    | 129  | 舞蹈 |
-    | 4  | 游戏 |
-    | 36  | 科技 |
-    | 160  | 生活 |
-    | 119  | 鬼畜 |
-    | 155  | 时尚 |
-    | 165  | 广告 |
-    | 5  | 娱乐 |
-    | 23  | 电影 |
-    | 11  | 电视剧 |
-    """
+    """视频排行榜内容类型"""
 
     FULL_SITE = 0
+    """全站"""
     DOUGA = 1
+    """动画"""
     GUOCHUANG = 168
+    """国创相关"""
     MUSIC = 3
+    """音乐"""
     DANCE = 129
+    """舞蹈"""
     GAME = 4
+    """游戏"""
     TECHNOLOGY = 36
+    """科技"""
     LIFE = 160
+    """生活"""
     KICHIKU = 119
+    """鬼畜"""
     FASHION = 155
+    """时尚"""
     INFORMATION = 165
+    """广告"""
     ENT = 5
+    """娱乐"""
     MOVIE = 23
+    """电影"""
     TV = 11
+    """电视剧"""
 
 
+@enum_auto_doc
 class RankDurationType(IntEnum):
-    """
-    排行榜时间段类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | 1  | 日排行 |
-    | 3  | 三日排行 |
-    | 7  | 周排行 |
-    | 30  | 月排行 |
-    """
+    """排行榜时间段类型"""
 
     DAILY = 1
+    """日排行"""
     THREE_DAY = 3
+    """三日排行"""
     WEEKLY = 7
+    """周排行"""
     MONTHLY = 30
+    """月排行"""
 
 
 class BaseBilibiliEndpoint(BaseEndpoint):
@@ -224,7 +179,7 @@ class BaseBilibiliEndpoint(BaseEndpoint):
     ) -> Dict[str, Any]:
         ...
 
-    @disable_cache
+    @dont_route
     @catch_network_error
     async def request(
         self,
@@ -235,10 +190,8 @@ class BaseBilibiliEndpoint(BaseEndpoint):
         params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         host = BilibiliConstants.SERVER_HOST[source or "app"]
-        url = (
-            self._join(base=host, endpoint=endpoint, params=params or {})
-            if not sign
-            else self._sign(base=host, endpoint=endpoint, params=params or {})
+        url = (self._sign if sign else self._join)(
+            base=host, endpoint=endpoint, params=params or {}
         )
         response = await self.client.get(url)
         response.raise_for_status()
@@ -324,6 +277,7 @@ class BaseBilibiliEndpoint(BaseEndpoint):
 
     async def favorite_video(
         self,
+        *,
         fid: int,
         vmid: int,
         page: int = 1,
@@ -454,7 +408,7 @@ class BaseBilibiliEndpoint(BaseEndpoint):
             },
         )
 
-    async def timeline(self, type: TimelineType = TimelineType.GLOBAL):
+    async def timeline(self, *, type: TimelineType = TimelineType.GLOBAL):
         return await self.request(
             "web_api/timeline_{type}",
             "bgm",

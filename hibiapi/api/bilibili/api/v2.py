@@ -2,11 +2,7 @@ from enum import Enum
 from functools import wraps
 from typing import Callable, Coroutine, Optional, TypeVar, Union
 
-from hibiapi.utils.exceptions import ClientSideException
-from hibiapi.utils.net import AsyncHTTPClient
-from hibiapi.utils.routing import BaseEndpoint
-
-from .base import (
+from hibiapi.api.bilibili.api.base import (
     BaseBilibiliEndpoint,
     CommentSortType,
     CommentType,
@@ -17,6 +13,10 @@ from .base import (
     VideoFormatType,
     VideoQualityType,
 )
+from hibiapi.utils.decorators import enum_auto_doc
+from hibiapi.utils.exceptions import ClientSideException
+from hibiapi.utils.net import AsyncHTTPClient
+from hibiapi.utils.routing import BaseEndpoint
 
 _AnyCallable = TypeVar("_AnyCallable", bound=Callable[..., Coroutine])
 
@@ -32,26 +32,18 @@ def process_keyerror(function: _AnyCallable) -> _AnyCallable:
     return wrapper  # type:ignore
 
 
-class V2EndpointsType(str, Enum):
-    playurl = "playurl"
-    seasoninfo = "seasoninfo"
-    source = "source"
-    seasonrecommend = "seasonrecommend"
-    comments = "comments"
-    search = "search"
-    rank = "rank"
-    typedynamic = "typedynamic"
-    recommend = "recommend"
-    timeline = "timeline"
-    space = "space"
-    archive = "archive"
-    favlist = "favlist"
-
-
+@enum_auto_doc
 class SearchType(str, Enum):
+    """搜索类型"""
+
     search = "search"
+    """综合搜索"""
+
     suggest = "suggest"
+    """搜索建议"""
+
     hot = "hot"
+    """热门"""
 
 
 class BilibiliEndpointV2(BaseEndpoint, cache_endpoints=False):
@@ -62,6 +54,7 @@ class BilibiliEndpointV2(BaseEndpoint, cache_endpoints=False):
     @process_keyerror
     async def playurl(
         self,
+        *,
         aid: int,
         page: Optional[int] = None,
         quality: VideoQualityType = VideoQualityType.VIDEO_480P,
@@ -96,7 +89,7 @@ class BilibiliEndpointV2(BaseEndpoint, cache_endpoints=False):
         index: Optional[int] = None,
         sort: CommentSortType = CommentSortType.TIME,
         page: int = 1,
-        pagesize: int = 20
+        pagesize: int = 20,
     ):  # NOTE: not same with origin
         if season_id is not None:
             assert index is not None, "parameter 'index' is required"
@@ -121,7 +114,7 @@ class BilibiliEndpointV2(BaseEndpoint, cache_endpoints=False):
         type: SearchType = SearchType.search,
         page: int = 1,
         pagesize: int = 20,
-        limit: int = 50
+        limit: int = 50,
     ):
         if type == SearchType.suggest:
             return await self.base.search_suggest(keyword=keyword)
@@ -139,7 +132,7 @@ class BilibiliEndpointV2(BaseEndpoint, cache_endpoints=False):
         *,
         content: Union[RankContentType, RankBangumiType] = RankContentType.FULL_SITE,
         duration: RankDurationType = RankDurationType.THREE_DAY,
-        new: bool = True
+        new: bool = True,
     ):
         if isinstance(content, int):
             return await self.base.rank_list(
@@ -171,14 +164,14 @@ class BilibiliEndpointV2(BaseEndpoint, cache_endpoints=False):
             pagesize=pagesize,
         )
 
-    async def archive(self, vmid: int, page: int = 1, pagesize: int = 10):
+    async def archive(self, *, vmid: int, page: int = 1, pagesize: int = 10):
         return await self.base.space_archive(
             vmid=vmid,
             page=page,
             pagesize=pagesize,
         )
 
-    async def favlist(self, fid: int, vmid: int, page: int = 1, pagesize: int = 20):
+    async def favlist(self, *, fid: int, vmid: int, page: int = 1, pagesize: int = 20):
         return await self.base.favorite_video(
             fid=fid,
             vmid=vmid,

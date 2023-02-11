@@ -20,10 +20,9 @@ from typing import (
 
 from typing_extensions import ParamSpec
 
-from ..log import logger
-from .timer import TimeIt
-
-_T = TypeVar("_T")
+from hibiapi.utils.decorators.enum import enum_auto_doc as enum_auto_doc  # noqa: F401
+from hibiapi.utils.decorators.timer import Callable_T, TimeIt
+from hibiapi.utils.log import logger
 
 Argument_T = ParamSpec("Argument_T")
 Return_T = TypeVar("Return_T")
@@ -31,7 +30,7 @@ Return_T = TypeVar("Return_T")
 
 class RetryT(Protocol):
     @overload
-    def __call__(self, function: Callable) -> Callable:
+    def __call__(self, function: Callable_T) -> Callable_T:
         ...
 
     @overload
@@ -56,7 +55,7 @@ class RetryT(Protocol):
 
 
 @overload
-def Retry(function: Callable) -> Callable:
+def Retry(function: Callable_T) -> Callable_T:
     ...
 
 
@@ -138,4 +137,4 @@ def ToAsync(
             None, lambda: function(*args, **kwargs)
         )
 
-    return wrapper  # type: ignore
+    return wrapper

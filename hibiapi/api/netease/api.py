@@ -3,71 +3,50 @@ import json
 import secrets
 import string
 from datetime import timedelta
-from enum import Enum, IntEnum
+from enum import IntEnum
 from ipaddress import IPv4Address
 from random import randint
 from typing import Any, Dict, List, Optional
 
 from Cryptodome.Cipher import AES
 from Cryptodome.Util.Padding import pad
+from fastapi import Query
 
-from hibiapi.utils.cache import cache_config, disable_cache
+from hibiapi.api.netease.constants import NeteaseConstants
+from hibiapi.utils.cache import cache_config
+from hibiapi.utils.decorators import enum_auto_doc
 from hibiapi.utils.exceptions import UpstreamAPIException
 from hibiapi.utils.net import catch_network_error
-from hibiapi.utils.routing import BaseEndpoint
-
-from .constants import NeteaseConstants
+from hibiapi.utils.routing import BaseEndpoint, dont_route
 
 
-class EndpointsType(str, Enum):
-    search = "search"
-    artist = "artist"
-    album = "album"
-    detail = "detail"
-    song = "song"
-    playlist = "playlist"
-    lyric = "lyric"
-    mv = "mv"
-    comments = "comments"
-    record = "record"
-    djradio = "djradio"
-    dj = "dj"
-    detail_dj = "detail_dj"
-    user = "user"
-    user_playlist = "user_playlist"
-
-
+@enum_auto_doc
 class SearchType(IntEnum):
-    """
-    搜索内容类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | 1  | 单曲 |
-    | 10  | 专辑 |
-    | 100  | 歌手 |
-    | 1000  | 歌单 |
-    | 1002  | 用户 |
-    | 1004  | mv |
-    | 1006  | 歌词 |
-    | 1009  | 主播电台 |
-    """
+    """搜索内容类型"""
 
     SONG = 1
+    """单曲"""
     ALBUM = 10
+    """专辑"""
     ARTIST = 100
+    """歌手"""
     PLAYLIST = 1000
+    """歌单"""
     USER = 1002
+    """用户"""
     MV = 1004
+    """MV"""
     LYRICS = 1006
+    """歌词"""
     DJ = 1009
+    """主播电台"""
     VIDEO = 1014
+    """视频"""
 
 
+@enum_auto_doc
 class BitRateType(IntEnum):
-    """
-    歌曲码率
-    """
+    """歌曲码率"""
 
     LOW = 64000
     MEDIUM = 128000
@@ -75,18 +54,14 @@ class BitRateType(IntEnum):
     HIGH = 320000
 
 
+@enum_auto_doc
 class RecordPeriodType(IntEnum):
-    """
-    听歌记录时段类型
-
-    | **数值** | **含义** |
-    |---|---|
-    | 0 | 所有时段 |
-    | 1 | 本周 |
-    """
+    """听歌记录时段类型"""
 
     WEEKLY = 1
+    """本周"""
     ALL = 0
+    """所有时段"""
 
 
 class _EncryptUtil:
@@ -141,7 +116,7 @@ class NeteaseEndpoint(BaseEndpoint):
         )
         return headers
 
-    @disable_cache
+    @dont_route
     @catch_network_error
     async def request(
         self, endpoint: str, *, params: Optional[Dict[str, Any]] = None
@@ -201,7 +176,7 @@ class NeteaseEndpoint(BaseEndpoint):
             },
         )
 
-    async def detail(self, *, id: List[int]):
+    async def detail(self, *, id: List[int] = Query()):
         return await self.request(
             "weapi/v3/song/detail",
             params={
@@ -212,7 +187,12 @@ class NeteaseEndpoint(BaseEndpoint):
         )
 
     @cache_config(ttl=timedelta(minutes=20))
-    async def song(self, *, id: List[int], br: BitRateType = BitRateType.STANDARD):
+    async def song(
+        self,
+        *,
+        id: List[int] = Query(),
+        br: BitRateType = BitRateType.STANDARD,
+    ):
         return await self.request(
             "weapi/song/enhance/player/url",
             params={
